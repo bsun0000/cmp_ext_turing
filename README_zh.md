@@ -1,6 +1,6 @@
 # cmpext3 - PyTorch CUDA扩展
 
-这是一个基于PyTorch的CUDA扩展，主要用于验证论文 **[《Instruction-Level Performance Analysis and Optimization Strategies for Constrained AI Accelerators A Case Study of CMP 170HX》]((https://doi.org/10.5281/zenodo.18994970)).** 中提出的计算原理。本扩展工程价值有限，主要作为原理性验证和实验使用。
+这是一个基于PyTorch的CUDA扩展，主要用于验证论文 **[《Instruction-Level Performance Analysis and Optimization Strategies for Constrained AI Accelerators A Case Study of CMP 170HX》](https://doi.org/10.5281/zenodo.18994970).** 中提出的计算原理。本扩展工程价值有限，主要作为原理性验证和实验使用。
 
 ## 包含的算子
 
