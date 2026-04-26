@@ -211,7 +211,11 @@ void launch_attention_fp32(const float* input, const float* weight, const float*
 
     size_t smem_size = 2 * TC * D * sizeof(float);
 
-    cudaFuncSetAttribute(attention_fp32_strict_kernel, cudaFuncAttributeMaxDynamicSharedMemorySize, 96 * 1024);
-
+    // NOTE (sm_75 / Turing): The kernel needs at most 2*TC*MAX_DIM*sizeof(float)
+    // = 2*32*128*4 = 32 KB, which is comfortably below Turing's 48 KB default
+    // dynamic-smem limit. The original 96 KB attribute call is removed: Turing's
+    // hardware hard-cap is 64 KB, so requesting 96 KB causes cudaFuncSetAttribute
+    // to return cudaErrorInvalidValue and the subsequent launch silently produces
+    // no output. No override is required here.
     attention_fp32_strict_kernel<<<grid, block, smem_size>>>(input, weight, value, output, S, D, scale);
 }

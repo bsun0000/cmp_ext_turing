@@ -11,13 +11,10 @@
 // Matmul Launchers
 void launch_matmul_fp16(const void* input, const void* weight, void* output, int M, int N, int K);
 void launch_matmul_fp32(const float* input, const float* weight, float* output, int M, int N, int K);
-void launch_matmul_bf16(const void* input, const void* weight, void* output, int M, int N, int K);
 
 // Bias Add Launchers
 void launch_add_bias_fp16(void* output, const void* bias, int rows, int cols);
 void launch_add_bias_fp32(float* output, const float* bias, int rows, int cols);
-void launch_add_bias_bf16(void* output, const void* bias, int rows, int cols);
-
 
 // Conv2d Launchers
 // 参数说明: input, weight, bias, output, 
@@ -25,8 +22,6 @@ void launch_add_bias_bf16(void* output, const void* bias, int rows, int cols);
 // out_h, out_w, stride_h, stride_w, pad_h, pad_w, dilation_h, dilation_w
 void launch_conv2d_fp32(const float* input, const float* weight, const float* bias, float* output,int B, int C_in, int H_in, int W_in, int C_out, int K_H, int K_W,int H_out, int W_out,int stride_h, int stride_w, int pad_h, int pad_w, int dil_h, int dil_w);
 void launch_conv2d_fp16(const void* input, const void* weight, const void* bias, void* output,int B, int C_in, int H_in, int W_in, int C_out, int K_H, int K_W,int H_out, int W_out,int stride_h, int stride_w, int pad_h, int pad_w, int dil_h, int dil_w);
-void launch_conv2d_bf16(const void* input, const void* weight, const void* bias, void* output,int B, int C_in, int H_in, int W_in, int C_out, int K_H, int K_W,int H_out, int W_out,int stride_h, int stride_w, int pad_h, int pad_w, int dil_h, int dil_w);
-
 
 // ConvTranspose2d Launchers
 // 参数说明: input, weight, bias, output
@@ -34,105 +29,83 @@ void launch_conv2d_bf16(const void* input, const void* weight, const void* bias,
 // stride, pad, output_padding, dilation
 void launch_conv_transpose2d_fp32(const float* input, const float* weight, const float* bias, float* output,int B, int C_in, int H_in, int W_in, int C_out, int K_H, int K_W, int H_out, int W_out,int stride_h, int stride_w, int pad_h, int pad_w, int out_pad_h, int out_pad_w, int dil_h, int dil_w);
 void launch_conv_transpose2d_fp16(const void* input, const void* weight, const void* bias, void* output,int B, int C_in, int H_in, int W_in, int C_out, int K_H, int K_W, int H_out, int W_out,int stride_h, int stride_w, int pad_h, int pad_w, int out_pad_h, int out_pad_w, int dil_h, int dil_w);
-void launch_conv_transpose2d_bf16(const void* input, const void* weight, const void* bias, void* output,int B, int C_in, int H_in, int W_in, int C_out, int K_H, int K_W, int H_out, int W_out,int stride_h, int stride_w, int pad_h, int pad_w, int out_pad_h, int out_pad_w, int dil_h, int dil_w);
-
 // UpSample
 // 参数: input, output, B, C, H_in, W_in, H_out, W_out
 void launch_upsample_nearest_fp32(const float* input, float* output, int B, int C, int H_in, int W_in, int H_out, int W_out);
 void launch_upsample_nearest_fp16(const void* input, void* output, int B, int C, int H_in, int W_in, int H_out, int W_out);
-void launch_upsample_nearest_bf16(const void* input, void* output, int B, int C, int H_in, int W_in, int H_out, int W_out);
 
 // Attention Launchers
 // 输入: Q, K, V (B, H, S, D), Output (B, H, S, D)
 // 参数: B, H, S, D, scale
 void launch_attention_fp32(const float* q, const float* k, const float* v, float* output, int B, int H, int S, int D, float scale);
 void launch_attention_fp16(const void* q, const void* k, const void* v, void* output, int B, int H, int S, int D, float scale);
-void launch_attention_bf16(const void* q, const void* k, const void* v, void* output, int B, int H, int S, int D, float scale);
 
 //GroupNorm
 // 参数: output, input, weight(gamma), bias(beta), N, C, HxW, groups, eps
 void launch_groupnorm_fp32(float* output, const float* input, const float* weight, const float* bias, int N, int C, int HxW, int groups, float eps);
 void launch_groupnorm_fp16(void* output, const void* input, const void* weight, const void* bias, int N, int C, int HxW, int groups, float eps);
-void launch_groupnorm_bf16(void* output, const void* input, const void* weight, const void* bias, int N, int C, int HxW, int groups, float eps);
-
 
 // LayerNorm 
 // 参数: output, input, weight(gamma), bias(beta), rows, cols, eps
 // 注意：为了简单，这里不输出 mean 和 rstd (仅做推理用)
 void launch_layernorm_fp32(float* output, const float* input, const float* gamma, const float* beta, int rows, int cols, float eps);
 void launch_layernorm_fp16(void* output, const void* input, const void* gamma, const void* beta, int rows, int cols, float eps);
-void launch_layernorm_bf16(void* output, const void* input, const void* gamma, const void* beta, int rows, int cols, float eps);
 
 // RMSNorm Launchers
 // 参数: output, input, weight(gamma), rows, cols, eps
 void launch_rmsnorm_fp32(float* output, const float* input, const float* weight, int rows, int cols, float eps);
 void launch_rmsnorm_fp16(void* output, const void* input, const void* weight, int rows, int cols, float eps);
-void launch_rmsnorm_bf16(void* output, const void* input, const void* weight, int rows, int cols, float eps);
-
 
 // GELU Launchers
 void launch_gelu_fp32(const float* input, float* output, int total_elements);
 void launch_gelu_fp16(const void* input, void* output, int total_elements);
-void launch_gelu_bf16(const void* input, void* output, int total_elements);
 
 // Silu Launchers
 void launch_silu_fp32(const float* input, float* output, int total_elements);
 void launch_silu_fp16(const void* input, void* output, int total_elements);
-void launch_silu_bf16(const void* input, void* output, int total_elements);
 
 // Swish Launchers (With Beta parameter)
 // beta 是指向 GPU 显存中单标量参数的指针
 void launch_swish_fp32(const float* input, const float* beta, float* output, int total_elements);
 void launch_swish_fp16(const void* input, const void* beta, void* output, int total_elements);
-void launch_swish_bf16(const void* input, const void* beta, void* output, int total_elements);
 
 // Mish Launchers
 void launch_mish_fp32(const float* input, float* output, int total_elements);
 void launch_mish_fp16(const void* input, void* output, int total_elements);
-void launch_mish_bf16(const void* input, void* output, int total_elements);
 
 // Softmax Launchers
 // 参数: input, output, rows, cols
 void launch_softmax_fp32(const float* input, float* output, int rows, int cols);
 void launch_softmax_fp16(const void* input, void* output, int rows, int cols);
-void launch_softmax_bf16(const void* input, void* output, int rows, int cols);
 
 // Softplus Launchers
 // Formula: 1/beta * log(1 + exp(beta * x))
 // 这里的 beta 和 threshold 均为标量
 void launch_softplus_fp32(const float* input, float* output, int total_elements, float beta, float threshold);
 void launch_softplus_fp16(const void* input, void* output, int total_elements, float beta, float threshold);
-void launch_softplus_bf16(const void* input, void* output, int total_elements, float beta, float threshold);
 
 // Softsign Launchers
 // Formula: x / (1 + |x|)
 void launch_softsign_fp32(const float* input, float* output, int total_elements);
 void launch_softsign_fp16(const void* input, void* output, int total_elements);
-void launch_softsign_bf16(const void* input, void* output, int total_elements);
 
 // Softshrink Launchers
 // Formula: x - lambda if x > lambda; x + lambda if x < -lambda; 0 otherwise
 void launch_softshrink_fp32(const float* input, float* output, int total_elements, float lambd);
 void launch_softshrink_fp16(const void* input, void* output, int total_elements, float lambd);
-void launch_softshrink_bf16(const void* input, void* output, int total_elements, float lambd);
 
 // Embedding Launchers
 // 参数: indices(long*), weight, output, num_indices, embedding_dim, padding_idx, num_weights(rows)
 void launch_embedding_fp32(const int64_t* indices, const float* weight, float* output, int num_indices, int embedding_dim, int padding_idx, int num_embeddings);
 void launch_embedding_fp16(const int64_t* indices, const void* weight, void* output, int num_indices, int embedding_dim, int padding_idx, int num_embeddings);
-void launch_embedding_bf16(const int64_t* indices, const void* weight, void* output, int num_indices, int embedding_dim, int padding_idx, int num_embeddings);
-
 
 // Tanh Launchers
 void launch_tanh_fp32(const float* input, float* output, int total_elements);
 void launch_tanh_fp16(const void* input, void* output, int total_elements);
-void launch_tanh_bf16(const void* input, void* output, int total_elements);
-
 
 // ERF Launchers
 void launch_erf_fp32(const float* input, float* output, int total_elements);
 void launch_erf_fp16(const void* input, void* output, int total_elements);
-void launch_erf_bf16(const void* input, void* output, int total_elements);
 
 // ------------------------------------------------------------------
 // 辅助函数：将 int 或 list 统一转为 vector
@@ -215,13 +188,6 @@ torch::Tensor custom_linear_forward(
             output.data_ptr<float>(), 
             M, N, K
         );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_matmul_bf16(
-            input.data_ptr<at::BFloat16>(), 
-            weight_t.data_ptr<at::BFloat16>(), 
-            output.data_ptr<at::BFloat16>(), 
-            M, N, K
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype");
     }
@@ -240,8 +206,6 @@ torch::Tensor custom_linear_forward(
             launch_add_bias_fp16(output.data_ptr<at::Half>(), bias_t.data_ptr<at::Half>(), M, N);
         } else if (input.dtype() == torch::kFloat32) {
             launch_add_bias_fp32(output.data_ptr<float>(), bias_t.data_ptr<float>(), M, N);
-        } else if (input.dtype() == torch::kBFloat16) {
-            launch_add_bias_bf16(output.data_ptr<at::BFloat16>(), bias_t.data_ptr<at::BFloat16>(), M, N);
         }
     }
 
@@ -330,19 +294,6 @@ torch::Tensor custom_bmm_forward(torch::Tensor input, torch::Tensor mat2) {
 
         for (int b = 0; b < B; ++b) {
             launch_matmul_fp16(
-                input_ptr + b * input_step,
-                mat2_ptr + b * mat2_step,
-                output_ptr + b * output_step,
-                M, N, K
-            );
-        }
-    } else if (input.dtype() == torch::kBFloat16) {
-        at::BFloat16* input_ptr = input.data_ptr<at::BFloat16>();
-        at::BFloat16* mat2_ptr = mat2.data_ptr<at::BFloat16>();
-        at::BFloat16* output_ptr = output.data_ptr<at::BFloat16>();
-
-        for (int b = 0; b < B; ++b) {
-            launch_matmul_bf16(
                 input_ptr + b * input_step,
                 mat2_ptr + b * mat2_step,
                 output_ptr + b * output_step,
@@ -471,15 +422,6 @@ torch::Tensor custom_conv2d_forward(
             B, C_in, H_in, W_in, C_out, K_H, K_W, H_out, W_out,
             s_h, s_w, p_h, p_w, d_h, d_w
         );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_conv2d_bf16(
-            input.data_ptr<at::BFloat16>(),
-            weight.data_ptr<at::BFloat16>(),
-            bias_ptr,
-            output.data_ptr<at::BFloat16>(),
-            B, C_in, H_in, W_in, C_out, K_H, K_W, H_out, W_out,
-            s_h, s_w, p_h, p_w, d_h, d_w
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for custom_conv2d");
     }
@@ -584,12 +526,6 @@ torch::Tensor custom_conv_transpose2d_forward(
     } else if (input.dtype() == torch::kFloat16) {
         launch_conv_transpose2d_fp16(
             input.data_ptr<at::Half>(), weight.data_ptr<at::Half>(), bias_ptr, output.data_ptr<at::Half>(),
-            B, C_in, H_in, W_in, C_out, K_H, K_W, H_out, W_out,
-            s_h, s_w, p_h, p_w, op_h, op_w, d_h, d_w
-        );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_conv_transpose2d_bf16(
-            input.data_ptr<at::BFloat16>(), weight.data_ptr<at::BFloat16>(), bias_ptr, output.data_ptr<at::BFloat16>(),
             B, C_in, H_in, W_in, C_out, K_H, K_W, H_out, W_out,
             s_h, s_w, p_h, p_w, op_h, op_w, d_h, d_w
         );
@@ -757,13 +693,6 @@ torch::Tensor custom_embedding_forward(
             output.data_ptr<at::Half>(),
             num_indices, embedding_dim, (int)padding_idx, num_embeddings
         );
-    } else if (weight.dtype() == torch::kBFloat16) {
-        launch_embedding_bf16(
-            input.data_ptr<int64_t>(),
-            weight.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
-            num_indices, embedding_dim, (int)padding_idx, num_embeddings
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for embedding");
     }
@@ -837,14 +766,6 @@ torch::Tensor custom_group_norm_forward(
         launch_groupnorm_fp16(
             output.data_ptr<at::Half>(),
             input.data_ptr<at::Half>(),
-            weight_ptr,
-            bias_ptr,
-            N, C, (int)HxW, (int)num_groups, (float)eps
-        );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_groupnorm_bf16(
-            output.data_ptr<at::BFloat16>(),
-            input.data_ptr<at::BFloat16>(),
             weight_ptr,
             bias_ptr,
             N, C, (int)HxW, (int)num_groups, (float)eps
@@ -932,14 +853,6 @@ torch::Tensor custom_layernorm_forward(
             beta_ptr,      // 使用 beta_ptr
             rows, cols, (float)eps
         );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_layernorm_bf16(
-            output.data_ptr<at::BFloat16>(),
-            input.data_ptr<at::BFloat16>(),
-            gamma_ptr,
-            beta_ptr,      // 使用 beta_ptr
-            rows, cols, (float)eps
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for LayerNorm");
     }
@@ -1004,13 +917,6 @@ torch::Tensor custom_rmsnorm_forward(
             output.data_ptr<at::Half>(),
             input.data_ptr<at::Half>(),
             weight.data_ptr<at::Half>(),
-            rows, cols, (float)eps
-        );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_rmsnorm_bf16(
-            output.data_ptr<at::BFloat16>(),
-            input.data_ptr<at::BFloat16>(),
-            weight.data_ptr<at::BFloat16>(),
             rows, cols, (float)eps
         );
     } else {
@@ -1081,14 +987,6 @@ torch::Tensor custom_attention_forward(
             output.data_ptr<at::Half>(),
             B, H, S, D, scale
         );
-    } else if (query.dtype() == torch::kBFloat16) {
-        launch_attention_bf16(
-            query.data_ptr<at::BFloat16>(),
-            key.data_ptr<at::BFloat16>(),
-            value.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
-            B, H, S, D, scale
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for attention");
     }
@@ -1128,12 +1026,6 @@ torch::Tensor custom_gelu_forward(torch::Tensor input) {
             output.data_ptr<at::Half>(),
             total_elements
         );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_gelu_bf16(
-            input.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
-            total_elements
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for custom GELU");
     }
@@ -1169,12 +1061,6 @@ torch::Tensor custom_silu_forward(torch::Tensor input) {
         launch_silu_fp16(
             input.data_ptr<at::Half>(),
             output.data_ptr<at::Half>(),
-            total_elements
-        );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_silu_bf16(
-            input.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
             total_elements
         );
     } else {
@@ -1241,13 +1127,6 @@ torch::Tensor custom_swish_forward(torch::Tensor input, py::object beta_arg) {
             output.data_ptr<at::Half>(),
             total_elements
         );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_swish_bf16(
-            input.data_ptr<at::BFloat16>(),
-            beta.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
-            total_elements
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for custom Swish");
     }
@@ -1283,12 +1162,6 @@ torch::Tensor custom_mish_forward(torch::Tensor input) {
         launch_mish_fp16(
             input.data_ptr<at::Half>(),
             output.data_ptr<at::Half>(),
-            total_elements
-        );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_mish_bf16(
-            input.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
             total_elements
         );
     } else {
@@ -1340,12 +1213,6 @@ torch::Tensor custom_softmax_forward(torch::Tensor input, int64_t dim, bool half
             output.data_ptr<at::Half>(),
             rows, cols
         );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_softmax_bf16(
-            input_view.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
-            rows, cols
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for custom softmax");
     }
@@ -1395,14 +1262,6 @@ torch::Tensor custom_softplus_forward(torch::Tensor input, double beta, double t
             (float)beta,
             (float)threshold
         );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_softplus_bf16(
-            input.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
-            total_elements,
-            (float)beta,
-            (float)threshold
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for custom Softplus");
     }
@@ -1439,12 +1298,6 @@ torch::Tensor custom_softsign_forward(torch::Tensor input) {
         launch_softsign_fp16(
             input.data_ptr<at::Half>(),
             output.data_ptr<at::Half>(),
-            total_elements
-        );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_softsign_bf16(
-            input.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
             total_elements
         );
     } else {
@@ -1487,13 +1340,6 @@ torch::Tensor custom_softshrink_forward(torch::Tensor input, double lambd) {
             total_elements,
             (float)lambd
         );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_softshrink_bf16(
-            input.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
-            total_elements,
-            (float)lambd
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for custom Softshrink");
     }
@@ -1531,12 +1377,6 @@ torch::Tensor custom_tanh_forward(torch::Tensor input) {
             output.data_ptr<at::Half>(),
             total_elements
         );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_tanh_bf16(
-            input.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
-            total_elements
-        );
     } else {
         TORCH_CHECK(false, "Unsupported dtype for custom_tanh");
     }
@@ -1569,12 +1409,6 @@ torch::Tensor custom_erf_forward(torch::Tensor input) {
         launch_erf_fp16(
             input.data_ptr<at::Half>(),
             output.data_ptr<at::Half>(),
-            total_elements
-        );
-    } else if (input.dtype() == torch::kBFloat16) {
-        launch_erf_bf16(
-            input.data_ptr<at::BFloat16>(),
-            output.data_ptr<at::BFloat16>(),
             total_elements
         );
     } else {

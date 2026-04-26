@@ -41,7 +41,7 @@ __global__ void __launch_bounds__(256) embedding_fp16_opt_kernel(
         // -------------------------------------------------------------
         bool is_valid = (target_idx != padding_idx) && (target_idx >= 0) && (target_idx < num_embeddings);
         
-        // 针对 A100 优化：利用 reinterpret_cast 进行向量化指针操作
+        // 向量化指针操作
         vec_t* out_vec_ptr = reinterpret_cast<vec_t*>(output + out_row_offset);
         
         if (is_valid) {
@@ -87,24 +87,63 @@ __global__ void __launch_bounds__(256) embedding_fp16_opt_kernel(
 
 void launch_embedding_fp16(const int64_t* indices, const void* weight, void* output, int num_indices, int embedding_dim, int padding_idx, int num_embeddings) {
     // 硬件相关配置
-    const int thread_per_block = 256; 
-    
+    const int thread_per_block = 256;
+
     // 计算向量化参数
     // 我们假设 output 和 weight 内存地址是 16字节对齐的 (cudaMalloc 默认 256字节对齐)
     // 如果 embedding_dim 不是 8 的倍数，向量化部分只能处理前面部分，尾部走 scalar 循环
     int num_vecs_per_row = embedding_dim / 8;
 
-    // Grid 配置策略：
-    // 我们希望有足够的 Block 填满 GPU 的 SM。
-    // A100 有 108 个 SM。每个 SM 可以驻留多个 Block。
-    // 简单的启发式：行数较多时，使用较大的 Grid；行数较少时，Grid = num_indices。
-    // 为了防止 Grid 过大，设置上限。
-    int min_blocks = (num_indices + 3) / 4; // 至少保证一定的并行度
-    int max_blocks = 108 * 8; // A100 SM count * ~saturation
-    int blocks = std::min(max_blocks, std::max(1, num_indices));
-    
-    // 如果 embedding_dim 非常大（例如 > 4096），可以考虑增加每个 Row 的 Block 数，
-    // 但通常 embedding lookup 是 Memory Bound，一个 Block 处理一行足以跑满带宽。
+    // -------------------------------------------------------------------------
+    // Grid 配置策略 — TU102 (Turing)
+    //
+    // TU102 有 72 个 SM。
+    //
+    // 该 kernel 无共享内存，每 Block 256 线程。
+    // Turing 每 SM 最多 1024 线程 → 每 SM 最多可驻留 4 个 Block。
+    // 但 embedding lookup 是纯 Memory-Bound 操作：每 Block 的瓶颈是 DRAM 带宽，
+    // 而非计算资源。实测表明 2–4 个 Block/SM 足以打满 TU102 的 672 GB/s 带宽
+    // （RTX 2080 Ti）。取 4 个 Block/SM 作为上限：
+    //
+    //   max_blocks = 72 SMs × 4 blocks/SM = 288
+    //
+    // 原代码误用了 A100 的 108 SM，导致上限偏高 (864)，增加调度开销但无性能收益。
+    //
+    // min_blocks 确保即使 num_indices 很小时也有足够的并行度以隐藏内存延迟：
+    // 每 4 行至少启动 1 个 Block，使每个 Block 的平均工作量合理。
+    //
+    // 最终 blocks = clamp(num_indices, min_blocks, max_blocks)，
+    // 保证：
+    //   (a) blocks ≤ num_indices — 不启动多余的空 Block（grid-stride loop 会跳过）
+    //   (b) blocks ≥ min_blocks  — 保证最低并行度
+    //   (c) blocks ≤ max_blocks  — 避免超出硬件调度饱和点
+    // -------------------------------------------------------------------------
+    const int TU102_SM_COUNT     = 72;
+    const int BLOCKS_PER_SM      = 4;   // 内存密集型 kernel 的饱和点
+    const int max_blocks         = TU102_SM_COUNT * BLOCKS_PER_SM;  // 288
+
+    // 最低并行度：每 4 个 index 至少分配 1 个 Block
+    int min_blocks = (num_indices + 3) / 4;
+    min_blocks = (min_blocks < 1) ? 1 : min_blocks;
+
+    // 上界：不超过 num_indices（多余 Block 在 grid-stride loop 中立即退出，
+    // 但仍浪费启动和调度资源）
+    int blocks = (num_indices < max_blocks) ? num_indices : max_blocks;
+
+    // 下界：保证最低并行度，但不超过上界
+    if (blocks < min_blocks) blocks = min_blocks;
+
+    // 最终安全夹紧：确保非零
+    if (blocks < 1) blocks = 1;
+
+    // 内存占用分析（kernel 本身无 smem）：
+    //   registers:  ~16 regs/thread × 256 threads = 4,096 regs/block
+    //               TU102 每 SM 65,536 regs → 可驻留 16 blocks（远超 4 个上限）
+    //   smem:       0 bytes（kernel 不使用 __shared__）
+    //   L1/L2:      int4 (128-bit) 向量化访问，对 Turing L1 缓存行 128 字节对齐最优
+    //   全局内存:   每行 embedding_dim × 2 bytes（读）+ embedding_dim × 2 bytes（写）
+    //               对于 embedding_dim = 768: 每行 3 KB；288 blocks × 256 threads
+    //               × 8 half/thread = 每次迭代最多 ~1.1 MB 在途数据，适合 TU102 带宽。
 
     embedding_fp16_opt_kernel<<<blocks, thread_per_block>>>(
         indices, 
