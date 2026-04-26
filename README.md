@@ -1,102 +1,23 @@
 
-# cmpext3 - PyTorch CUDA Extension
+# cmpext3 - PyTorch/ComfyUI CUDA Extension
 
-[中文版](README_zh.md)
+This is a PyTorch/ComfUI extension to bypass FFMA/Tensor cores throttling on CMP mining cards based on Turing chips (TU10X).
+Forked from [eastmoe/cmp_ext](https://github.com/eastmoe/cmp_ext) - the original code targeted CMP 170HX (Ampere GPU).
+Supports FP16 and FP32, BF16 paths has been removed.
 
-This is a CUDA extension based on PyTorch, primarily used to verify the computational principles proposed in the paper **["Instruction-Level Performance Analysis and Optimization Strategies for Constrained AI Accelerators A Case Study of CMP 170HX"](https://doi.org/10.5281/zenodo.18994970).** The engineering value of this extension is limited; it is mainly intended for principle verification and experimental use.
+For additional info - go to the original repository.
 
-## Included Operators
+# Warning
 
-The extension implements CUDA versions of the following operators in three precisions (FP16, FP32, BF16):
+Shamelessly vibecoded (using Claude.ai) to make it run on Turing cards. Can contain errors. Can break the output.
+Tested on CMP 50HX card and text-to-image models (SDXL & Anima), maxing out the power usage on this card.
+Speed is at least tripled in comparison to the normal FP16 workloads.
 
-### Core Computation Operators
-- **Matrix Multiplication** (MatMul): `fp16/bf16/fp32_matmul`
-- **Convolution** (Conv2d): `fp16/bf16/fp32_conv`
-- **Transposed Convolution** (ConvTranspose2d): `fp16/bf16/fp32_ConvTranspose2d`
-- **Attention Mechanism** (Attention): `fp16/bf16/fp32_attention`
+# Compilation
 
-### Normalization Layers
-- **Layer Normalization** (LayerNorm): `fp16/bf16/fp32_layernorm`
-- **Group Normalization** (GroupNorm): `fp16/bf16/fp32_groupnorm`
-- **RMS Normalization** (RMSNorm): `fp16/bf16/fp32_rmsnorm`
+For additional info - go to the original repository.
+Release page contains a pre-compiled wheel for CUDA 12.8 + Python 3.12
 
-### Activation Functions
-- **GELU**: `fp16/bf16/fp32_gelu`
-- **SiLU**: `fp16/bf16/fp32_silu`
-- **Swish**: `fp16/bf16/fp32_swish`
-- **Mish**: `fp16/bf16/fp32_mish`
-- **Softmax Series**: Softmax, Softplus, Softsign, Softshrink
+# License
 
-### Basic Mathematical Functions
-- **Tanh**: `fp16/bf16/fp32_base_tanh`
-- **Erf**: `fp16/bf16/fp32_base_erf`
-
-### Embedding Layer
-- **Embedding**: `fp16/bf16/fp32_emb`
-
-## Installation Dependencies
-
-### Required Dependencies
-- **Python**
-- **PyTorch** (Must match your CUDA version)
-- **CUDA Toolkit**
-- **GPU**: NVIDIA GPU 
-
-### Development Dependencies
-- **ninja** (Optional, disabled by default)
-- **setuptools**
-
-## Installation Instructions
-
-### 1. Prerequisites
-Ensure you have the correct versions of PyTorch and CUDA Toolkit installed:
-```bash
-# Example: Installing PyTorch (Please choose according to your CUDA version)
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
-```
-
-### 2. Download and Install Extension
-```bash
-# From GitHUB download the source.
-git clone https://github.com/eastmoe/cmp_ext
-# Install from source
-cd cmp_ext
-pip install -e . --no-build-isolation
-```
-
-### 3. Verify Installation
-```python
-import torch
-import cmpext3
-
-# Check if CUDA is available
-print(f"CUDA available: {torch.cuda.is_available()}")
-print(f"Extension loaded: {cmpext3.__file__}")
-```
-Or run the test tool:
-```bash
-python tools/bench.py
-```
-
-## Implementation Purpose
-
-**Main Purpose**: This extension is a verification implementation of the computational principles in the paper **"XXXX"** (please replace with the actual paper title). The focus is on verifying restriction evasion strategies on the CMP 170HX.
-
-**Engineering Value**: This extension is primarily for research verification and is not suitable for production environments. There may be the following limitations: Performance is not fully optimized (e.g., BF16/Attention, etc.). Lack of comprehensive error handling. Limited test coverage.
-
-## File Structure
-
-```
-.
-├── setup.py              # Installation configuration file
-├── src/
-│   ├── main.cpp         # Python binding entry point
-│   ├── cuda/            # Main operator implementation
-│   └── cuda-base/       # Basic mathematical functions
-```
-
-## License
 MIT
-
-## ComfyUI Extension
-Refer to [ComfyUI-CMP-Extention](https://github.com/eastmoe/ComfyUI-CMP-Extention) to get acceleration in ComfyUI.
